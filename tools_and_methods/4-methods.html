@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Nick Malleson" />
+
+
+<title>Methods and Tools to Analyse Point Patterns</title>
+
+<script src="4-methods_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="4-methods_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="4-methods_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="4-methods_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="4-methods_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="4-methods_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="4-methods_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="4-methods_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="4-methods_files/navigation-1.1/tabsets.js"></script>
+<link href="4-methods_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="4-methods_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Methods and Tools to Analyse Point Patterns</h1>
+<h4 class="author"><em>Nick Malleson</em></h4>
+<h4 class="date"><em>12 March, 2019 (17:20)</em></h4>
+
+</div>
+
+
+<div id="methods-and-tools-to-analyse-point-patterns" class="section level1">
+<h1>Methods and Tools to Analyse Point Patterns</h1>
+<p>This R markdown document contains the code to produce the images in Section 4 (Methods and Tools to Analyse Point Patterns) of the chapter ‘Spatial-temporal Point Pattern Processes and Models’</p>
+</div>
+<div id="initialisation" class="section level1">
+<h1>Initialisation</h1>
+<p>Initialise the required R libraries. If R complains that any of these are not available, you can install them with <code>install.packages(&quot;PackageName&quot;)</code>.</p>
+<pre class="r"><code># Remember the default margins (useful later when they need changing temporarily)
+default.mar &lt;- par(&quot;mar&quot;)
+
+library(GISTools)   # A great GIS package; lots of other useful dependencies loaded as well
+library(rgdal)      # For reading shapefiles
+library(classInt)   # Jenks natural breaks
+library(spatstat)   # For Ripley&#39;s K and others</code></pre>
+</div>
+<div id="download-example-data---crime-in-west-yorkshire" class="section level1">
+<h1>Download Example Data - Crime in West Yorkshire</h1>
+<p>We could generate a synthetic data set, but lets use a real one. Downoad the locations of somecrimes that occurred in West Yorkshire in May 2014 They are available to download from <a href="https://data.police.uk/">data.police.uk</a>.</p>
+<p>It will also be necessary to aggregate the point data, so the following will also read LSOA boundaries and aggreagte the crime data. These were downloaded from <a href="https://data.gov.uk/dataset/lower_layer_super_output_area_lsoa_boundaries">data.gov.uk</a> and West Yorkshire was extracted separately.</p>
+<pre class="r"><code># Because there is some randomisation in the crime data, only re-read it if this is the first time the script has run.
+# Otherwise the results will be slightly different each time.
+
+if (file.exists(&quot;./methods.RData&quot;)) {
+  print(&quot;Loading data from RData file&quot;)
+  load(&quot;./methods.RData&quot;)
+} else {
+  print(&quot;Reading data&quot;)
+  # Read crime from 2014
+  crime.14 &lt;- read.csv(&quot;data/2014-05-west-yorkshire-street.csv&quot;)
+  crime.14$Context &lt;- NULL
+  crime.14 &lt;- crime.14[complete.cases(crime.14),]
+  crime.14.spdf &lt;- SpatialPointsDataFrame(coords=crime.14[,c(&quot;Longitude&quot;,&quot;Latitude&quot;)], data=crime.14, proj4string = CRS(&quot;+init=epsg:4326&quot;))
+  crimes &lt;- spTransform(crime.14.spdf, CRS(&quot;+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs &quot;))
+
+  # Read the LSOA boundaries and LAD boundaries
+  lsoa &lt;- readOGR(dsn = &quot;./data&quot;, &quot;west_yorkshire_lsoa_2011&quot; )
+  lad &lt;- readOGR(&quot;./data/&quot;, &quot;West_Yorkshire_lad_2011&quot;)
+  # The boundaries are British National Grid, but the proj4string varies slightly so use the same one as the crime data
+  proj4string(lsoa) &lt;- CRS(&quot;+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs&quot;)
+  proj4string(lad) &lt;- CRS(&quot;+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs&quot;)
+  
+  # Remove any points from outside of the boundaries (as these will make the maps look funny)
+  
+  crimes &lt;- gIntersection(crimes, lad, byid=T)
+
+    # Now aggregate the points
+  lsoa@data$crimes &lt;- 0 # Get the new colum ready
+  lsoa@data$crimes &lt;- poly.counts(crimes, lsoa)
+  save.image(file=&quot;methods.RData&quot;)
+}</code></pre>
+<pre><code>## [1] &quot;Loading data from RData file&quot;</code></pre>
+</div>
+<div id="calcualte-kde" class="section level1">
+<h1>Calcualte KDE</h1>
+<pre class="r"><code># Standard shading across all maps
+COLOURS &lt;- brewer.pal(9,&#39;Blues&#39;)
+BREAKS &lt;- 8
+
+# Compute KDE
+crimes.kde &lt;- kde.points(  pts=crimes,   h=7000, n=50, lims=lad) # 7km bandwidth and 50x50 grid
+# Calculate shading
+#kde.interval &lt;- classIntervals(crimes.kde@data$kde, n = BREAKS, style = &#39;quantile&#39;)$brks
+#kde.shades &lt;- shading(kde.interval, cols=COLOURS)</code></pre>
+</div>
+<div id="map" class="section level1">
+<h1>Map</h1>
+<p>Draw a map showing raw points, a choroploeth map, and a density surface</p>
+<pre class="r"><code>doplot &lt;- function() {
+
+  par(mfrow=c(1,3))
+    
+  # Raw
+  plot(crimes, main = &quot;Points&quot;, cex.main=2.0, cex=0.2)
+  
+  # Choropleth
+  choropleth(lsoa, lsoa$crimes, border=NA)
+  title(&quot;Thematic map&quot;, cex.main=2.0, cex=0.2)
+  
+  #KDE
+  masker = poly.outer(crimes.kde,lad,extend=100)
+  level.plot(crimes.kde)
+  add.masking(masker)
+  plot(lad, add=T, lwd=0.5, col=rgb(1, 1, 1, 0.0)) # (White fill and fully transparent)
+  title(&quot;KDE&quot;, cex.main=2.0, cex=0.2)
+
+}
+
+# Plot for the knitr&#39;d document
+doplot()</code></pre>
+<pre><code>## Warning in RGEOSBinTopoFunc(spgeom1, spgeom2, byid, id, drop_lower_td,
+## unaryUnion_if_byid_false, : spgeom1 and spgeom2 have different proj4
+## strings</code></pre>
+<p><img src="4-methods_files/figure-html/mapData-1.png" width="1056" /></p>
+<pre class="r"><code># And a pgn for the book:
+png(file=&quot;figures/map.png&quot;, width = 1080, height = 400, units = &quot;px&quot;)
+doplot()</code></pre>
+<pre><code>## Warning in RGEOSBinTopoFunc(spgeom1, spgeom2, byid, id, drop_lower_td,
+## unaryUnion_if_byid_false, : spgeom1 and spgeom2 have different proj4
+## strings</code></pre>
+<pre class="r"><code>dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+</div>
+<div id="ripleys-k" class="section level1">
+<h1>Ripley’s K</h1>
+<p>Calculate Ripley’s K and plot it against different levels of distance on a graph.</p>
+<pre class="r"><code># NNI - this is how to calcualte the nearest neighbour index. Not used here.
+#crimes.nni &lt;- nni(crimes, win=&#39;extent&#39;)
+
+# K
+crimes.k &lt;- Kest(unique.ppp(as.ppp(crimes)), correction=&#39;border&#39;)
+
+# Plot K
+WIDTH &lt;- 10
+HEIGHT &lt;- 5
+
+plot(crimes.k$border, type=&#39;l&#39;, xlab=&quot;d&quot;, ylab=&quot;K(d)&quot;, axes=F)
+axis(1)
+axis(2, labels=F)
+title(&quot;Ripley&#39;s K&quot;)</code></pre>
+<p><img src="4-methods_files/figure-html/ripleys.k-1.png" width="672" /></p>
+<pre class="r"><code># Now for the book
+pdf(file=&quot;figures/k_function.pdf&quot;, width=WIDTH, height=HEIGHT) 
+plot(crimes.k$border, type=&#39;l&#39;, xlab=&quot;d&quot;, ylab=&quot;K(d)&quot;, axes=F)
+axis(1)
+axis(2, labels=F)
+title(&quot;Ripley&#39;s K&quot;)
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<div id="gi" class="section level3">
+<h3>GI*</h3>
+<p>It is possible to coduct Getis-Ord GI* analysis in R, but in this case we have used ArcMap. All the script does here is write out the data so that it can be read by ArcGIS.</p>
+<pre class="r"><code>writeOGR(lsoa, dsn = &quot;data/gi_star&quot;, layer = &quot;lsoa&quot;, driver = &quot;ESRI Shapefile&quot;, overwrite_layer = TRUE)</code></pre>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
