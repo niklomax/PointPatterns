@@ -23,7 +23,7 @@ fontsize: 10pt
 
 # Methods and Tools to Analyse Point Patterns
 
-This R markdown document contains the code to produce the images in Section 4 (Methods and Tools to Analyse Point Patterns) of the chapter 'Spatial-temporal Point Pattern Processes and Models'
+This R markdown document contains the code to produce some of the images in the chapter 'Spatial-Temporal Point Pattern Processes and Models'
 
 # Initialisation
 
@@ -40,9 +40,69 @@ library(spatstat)   # For Ripley's K and others
 ```
 
 
+# Example of Random v.s. Uniform point processes
+
+Create an illustration of a point pattern created by a random point processes as compared to a uniform pattern.
+
+```{r point.paterns-random.uniform, fig.width=14, fig.height=5}
+
+N = 1000 # (approximate) number of points to draw
+
+# Generate a random point pattern using a poisson process
+csr <- rpoispp(lambda = N, win=owin(c(0,1),c(0,1)) )
+
+# Make a uniform pattern with the same number of points
+uni.x <- c()
+uni.y <- c()
+count <- 1
+for (i in 1:sqrt(N)) {
+  for (j in 1:sqrt(N)) {
+    uni.x[count] <- i/sqrt(N) 
+    uni.y[count] <- j/sqrt(N) 
+    count <- count + 1
+  }
+}
+
+# Clustered pattern (example from https://rdrr.io/cran/spatstat/man/rPoissonCluster.html)
+
+nclust <- function(x0, y0, radius, n) {
+  return(runifdisc(n, radius, centre=c(x0, y0)))
+}
+num.clusters <- 10
+cluster <- rPoissonCluster(
+  kappa = N/num.clusters, 
+  expand = 0.2, 
+  rcluster = nclust, 
+  radius=0.03, n=num.clusters
+  )
+
+# Plot the patterns.
+
+par(mfrow=c(1,3))
+plot(cluster$x, cluster$y, axes=F, xaxt='n', yaxt='n', ann=FALSE)
+title("Clustered", cex=3)
+plot(csr$x, csr$y, axes=F, xaxt='n', yaxt='n', ann=FALSE)
+title("Random", cex=3)
+plot(uni.x, uni.y, axes=F, xaxt='n', yaxt='n', ann=FALSE)
+title("Uniform", cex=3)
+
+# Make a pdf as well
+pdf(file="figures/csr.pdf", width=11, height=4)
+par(mfrow=c(1,3))
+plot(cluster$x, cluster$y, axes=F, xaxt='n', yaxt='n',  ann=FALSE, cex=0.5)
+title("Clustered", cex=3)
+plot(csr$x, csr$y, axes=F, xaxt='n', yaxt='n',  ann=FALSE, cex=0.5)
+title("Random", cex=3)
+plot(uni.x, uni.y, axes=F, xaxt='n', yaxt='n',  ann=FALSE, cex=0.5)
+title("Uniform", cex=3)
+dev.off()
+```
+
+
+
 # Download Example Data - Crime in West Yorkshire
 
-We could generate a synthetic data set, but lets use a real one. Downoad the locations of somecrimes that occurred in West Yorkshire in May 2014 They are available to download from [data.police.uk](https://data.police.uk/). 
+For the next examples we need some data. We could generate a synthetic data set, but lets use a real one. Downoad the locations of somecrimes that occurred in West Yorkshire in May 2014 They are available to download from [data.police.uk](https://data.police.uk/). 
 
 It will also be necessary to aggregate the point data, so the following will also read LSOA boundaries and aggreagte the crime data. These were downloaded from [data.gov.uk](https://data.gov.uk/dataset/lower_layer_super_output_area_lsoa_boundaries) and West Yorkshire was extracted separately.
 
